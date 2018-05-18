@@ -67,11 +67,13 @@ architecture RTL of cpu_top is
 		port(
 			I_OP : in std_logic;
 			I_D  : in std_logic_vector(WIDTH - 1 downto 0);
-			Q_D  : out std_logic_vector(WIDTH - 1 downto 0)
+			Q_D  : out std_logic_vector(WIDTH - 1 downto 0);
+			Q_F  : out std_logic
 		);
 	end component alu;
 	
 	signal ALU_OP  : std_logic;
+	signal ALU_F   : std_logic;
 	signal ALU_IN  : std_logic_vector(ALU_LEN - 1 downto 0);
 	signal ALU_OUT : std_logic_vector(ALU_LEN - 1 downto 0);
 	
@@ -79,18 +81,16 @@ architecture RTL of cpu_top is
 		port(
 			I_CLK   : in std_logic;
 			I_RST   : in std_logic;
+			I_FLAG  : in std_logic_vector(FLAG_LEN - 1 downto 0);
 			I_INSTR : in std_logic_vector(CELL_LEN - 1 downto 0);
 			Q_CS    : out std_logic_vector(CS_LEN - 1 downto 0)
 		);
 	end component control_unit;
 	
+	signal C_FLAG : std_logic_vector(FLAG_LEN - 1 downto 0);
+	
 	signal L_CS : std_logic_vector(CS_LEN - 1 downto 0);
 begin
-	reset : process(I_RST)
-	begin
-		
-	end process reset;
-
 	data_pointer : reg
 		generic map(
 			WIDTH => DP_LEN
@@ -154,16 +154,20 @@ begin
 		port map(
 			I_OP => ALU_OP,
 			I_D  => ALU_IN,
-			Q_D  => ALU_OUT
+			Q_D  => ALU_OUT,
+			Q_F  => ALU_F
 		);
 		
 	cu : control_unit
 		port map(
 			I_CLK => I_CLK,
 			I_RST => I_RST,
+			I_FLAG => C_FLAG,
 			I_INSTR => IR_DOUT,
 			Q_CS => L_CS
 		);
+		
+	C_FLAG <= "1" when ALU_F = '1' else "0";
 		
 	ALUT_DIN <= DP_DOUT when L_CS(CS_ALUTSRC'range) = "0" else (14 downto CELL_LEN => '0') & I_DAT;
 		

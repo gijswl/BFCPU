@@ -12,6 +12,7 @@ package constants is
 
 	constant CLOCK_PERIOD : time := 20 ns;
 
+	constant FLAG_LEN : natural := 1;
 	constant DP_LEN   : natural := 15;
 	constant CELL_LEN : natural := 8;
 	constant ADR_LEN  : natural := 15;
